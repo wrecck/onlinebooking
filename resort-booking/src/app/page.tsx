@@ -124,12 +124,18 @@ export default function HomePage() {
                 </div>
               </div>
               <div className="flex items-end">
-                <Link href="/accommodations" className="w-full">
+                <Link href="/select-accommodation" className="w-full">
                   <Button className="w-full" size="lg">
                     Search
                   </Button>
                 </Link>
               </div>
+            </div>
+            <div className="mt-4 pt-4 border-t border-slate-200">
+              <Link href="/select-accommodation" className="text-emerald-600 hover:text-emerald-700 font-medium text-sm flex items-center justify-center">
+                <MapPin className="w-4 h-4 mr-1" />
+                View Resort Map & Select Accommodation
+              </Link>
             </div>
           </div>
         </div>
