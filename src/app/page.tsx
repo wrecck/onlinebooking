@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -66,6 +70,22 @@ const amenities = [
 ];
 
 export default function HomePage() {
+  const router = useRouter();
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+  const [guests, setGuests] = useState("2");
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (checkIn && checkOut) {
+      router.push(`/select-accommodation?checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`);
+    } else {
+      router.push("/select-accommodation");
+    }
+  };
+
+  const today = new Date().toISOString().split("T")[0];
+
   return (
     <div>
       {/* Hero Section */}
@@ -89,14 +109,18 @@ export default function HomePage() {
           </p>
           
           {/* Quick Search */}
-          <div className="bg-white rounded-xl p-4 md:p-6 shadow-2xl max-w-3xl mx-auto">
+          <form onSubmit={handleSearch} className="bg-white rounded-xl p-4 md:p-6 shadow-2xl max-w-3xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="text-left">
                 <label className="block text-sm font-medium text-slate-700 mb-1">Check-in</label>
                 <div className="flex items-center space-x-2 border rounded-lg px-3 py-2">
                   <Calendar className="w-5 h-5 text-slate-400" />
                   <input 
-                    type="date" 
+                    type="date"
+                    value={checkIn}
+                    onChange={(e) => setCheckIn(e.target.value)}
+                    min={today}
+                    required
                     className="w-full text-slate-700 focus:outline-none"
                   />
                 </div>
@@ -106,7 +130,11 @@ export default function HomePage() {
                 <div className="flex items-center space-x-2 border rounded-lg px-3 py-2">
                   <Calendar className="w-5 h-5 text-slate-400" />
                   <input 
-                    type="date" 
+                    type="date"
+                    value={checkOut}
+                    onChange={(e) => setCheckOut(e.target.value)}
+                    min={checkIn || today}
+                    required
                     className="w-full text-slate-700 focus:outline-none"
                   />
                 </div>
@@ -115,20 +143,24 @@ export default function HomePage() {
                 <label className="block text-sm font-medium text-slate-700 mb-1">Guests</label>
                 <div className="flex items-center space-x-2 border rounded-lg px-3 py-2">
                   <Users className="w-5 h-5 text-slate-400" />
-                  <select className="w-full text-slate-700 focus:outline-none bg-transparent">
-                    <option>1 Guest</option>
-                    <option>2 Guests</option>
-                    <option>3 Guests</option>
-                    <option>4+ Guests</option>
+                  <select 
+                    value={guests}
+                    onChange={(e) => setGuests(e.target.value)}
+                    className="w-full text-slate-700 focus:outline-none bg-transparent"
+                  >
+                    <option value="1">1 Guest</option>
+                    <option value="2">2 Guests</option>
+                    <option value="3">3 Guests</option>
+                    <option value="4">4 Guests</option>
+                    <option value="5">5 Guests</option>
+                    <option value="6">6+ Guests</option>
                   </select>
                 </div>
               </div>
               <div className="flex items-end">
-                <Link href="/select-accommodation" className="w-full">
-                  <Button className="w-full" size="lg">
-                    Search
-                  </Button>
-                </Link>
+                <Button type="submit" className="w-full" size="lg">
+                  Search
+                </Button>
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-200">
@@ -137,7 +169,7 @@ export default function HomePage() {
                 View Resort Map & Select Accommodation
               </Link>
             </div>
-          </div>
+          </form>
         </div>
       </section>
 
@@ -247,7 +279,7 @@ export default function HomePage() {
           <p className="text-xl mb-8 text-emerald-100">
             Book now and get 10% off your first stay. Use code WELCOME10 at checkout.
           </p>
-          <Link href="/accommodations">
+          <Link href="/select-accommodation">
             <Button size="lg" className="bg-white text-emerald-600 hover:bg-emerald-50">
               Book Your Stay
               <ArrowRight className="w-4 h-4 ml-2" />

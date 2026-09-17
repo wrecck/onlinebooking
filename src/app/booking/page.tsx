@@ -26,6 +26,7 @@ const accommodationsData: Record<string, {
   maxGuests: number;
   image: string;
 }> = {
+  // Original slugs
   "ocean-view-cottage": {
     id: "1",
     name: "Ocean View Cottage",
@@ -50,6 +51,33 @@ const accommodationsData: Record<string, {
     maxGuests: 8,
     image: "https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?w=400&h=300&fit=crop",
   },
+  // Map IDs - Beachfront Cottages
+  "bf1": { id: "bf1", name: "Beachfront Cottage 1", type: "COTTAGE", price: 320, maxGuests: 4, image: "https://images.unsplash.com/photo-1587061949409-02df41d5e562?w=400&h=300&fit=crop" },
+  "bf2": { id: "bf2", name: "Beachfront Cottage 2", type: "COTTAGE", price: 320, maxGuests: 4, image: "https://images.unsplash.com/photo-1587061949409-02df41d5e562?w=400&h=300&fit=crop" },
+  "bf3": { id: "bf3", name: "Beachfront Cottage 3", type: "COTTAGE", price: 350, maxGuests: 6, image: "https://images.unsplash.com/photo-1587061949409-02df41d5e562?w=400&h=300&fit=crop" },
+  "bf4": { id: "bf4", name: "Beachfront Cottage 4", type: "COTTAGE", price: 350, maxGuests: 6, image: "https://images.unsplash.com/photo-1587061949409-02df41d5e562?w=400&h=300&fit=crop" },
+  // Garden Rooms
+  "gr1": { id: "gr1", name: "Garden Room 1", type: "ROOM", price: 120, maxGuests: 2, image: "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400&h=300&fit=crop" },
+  "gr2": { id: "gr2", name: "Garden Room 2", type: "ROOM", price: 120, maxGuests: 2, image: "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400&h=300&fit=crop" },
+  "gr3": { id: "gr3", name: "Garden Room 3", type: "ROOM", price: 120, maxGuests: 2, image: "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400&h=300&fit=crop" },
+  "gr4": { id: "gr4", name: "Garden Room 4", type: "ROOM", price: 120, maxGuests: 2, image: "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400&h=300&fit=crop" },
+  "gr5": { id: "gr5", name: "Garden Room 5", type: "ROOM", price: 140, maxGuests: 3, image: "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400&h=300&fit=crop" },
+  "gr6": { id: "gr6", name: "Garden Room 6", type: "ROOM", price: 140, maxGuests: 3, image: "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400&h=300&fit=crop" },
+  // Garden Suites
+  "gs1": { id: "gs1", name: "Garden Suite 1", type: "SUITE", price: 180, maxGuests: 2, image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop" },
+  "gs2": { id: "gs2", name: "Garden Suite 2", type: "SUITE", price: 180, maxGuests: 2, image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop" },
+  // Poolside Bungalows
+  "pb1": { id: "pb1", name: "Poolside Bungalow 1", type: "BUNGALOW", price: 250, maxGuests: 4, image: "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=400&h=300&fit=crop" },
+  "pb2": { id: "pb2", name: "Poolside Bungalow 2", type: "BUNGALOW", price: 250, maxGuests: 4, image: "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=400&h=300&fit=crop" },
+  "pb3": { id: "pb3", name: "Poolside Bungalow 3", type: "BUNGALOW", price: 250, maxGuests: 4, image: "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=400&h=300&fit=crop" },
+  "pb4": { id: "pb4", name: "Poolside Bungalow 4", type: "BUNGALOW", price: 280, maxGuests: 5, image: "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=400&h=300&fit=crop" },
+  // Hillside Villas
+  "hv1": { id: "hv1", name: "Hillside Villa 1", type: "VILLA", price: 400, maxGuests: 8, image: "https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?w=400&h=300&fit=crop" },
+  "hv2": { id: "hv2", name: "Hillside Villa 2", type: "VILLA", price: 400, maxGuests: 8, image: "https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?w=400&h=300&fit=crop" },
+  "hv3": { id: "hv3", name: "Hillside Villa 3", type: "VILLA", price: 450, maxGuests: 10, image: "https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?w=400&h=300&fit=crop" },
+  // Hillside Cabins
+  "hc1": { id: "hc1", name: "Mountain Cabin 1", type: "CABIN", price: 220, maxGuests: 6, image: "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?w=400&h=300&fit=crop" },
+  "hc2": { id: "hc2", name: "Mountain Cabin 2", type: "CABIN", price: 220, maxGuests: 6, image: "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?w=400&h=300&fit=crop" },
 };
 
 function BookingForm() {
