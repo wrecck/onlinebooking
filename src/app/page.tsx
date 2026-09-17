@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useCurrency } from "@/contexts/currency-context";
 import { 
   Waves, 
   TreePine, 
@@ -71,6 +72,7 @@ const amenities = [
 
 export default function HomePage() {
   const router = useRouter();
+  const { formatPrice } = useCurrency();
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState("2");
@@ -220,7 +222,7 @@ export default function HomePage() {
                         <span>{accommodation.maxGuests} guests</span>
                       </div>
                       <div className="text-right">
-                        <span className="text-xl font-bold text-emerald-600">${accommodation.price}</span>
+                        <span className="text-xl font-bold text-emerald-600">{formatPrice(accommodation.price)}</span>
                         <span className="text-sm text-slate-500">/night</span>
                       </div>
                     </div>

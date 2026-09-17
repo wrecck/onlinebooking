@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useCurrency } from "@/contexts/currency-context";
 import { Star, Users, Bed, Bath, Filter, Map } from "lucide-react";
 
 const accommodations = [
@@ -114,6 +117,8 @@ const accommodationTypes = [
 ];
 
 export default function AccommodationsPage() {
+  const { formatPrice } = useCurrency();
+  
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Hero */}
@@ -218,7 +223,7 @@ export default function AccommodationsPage() {
                     </span>
                     <div className="text-right">
                       <span className="text-xl font-bold text-emerald-600">
-                        ${accommodation.price}
+                        {formatPrice(accommodation.price)}
                       </span>
                       <span className="text-sm text-slate-500">/night</span>
                     </div>

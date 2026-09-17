@@ -16,7 +16,8 @@ import {
   ChevronLeft,
   Check
 } from "lucide-react";
-import { formatCurrency, formatDate, calculateNights, generateBookingNumber } from "@/lib/utils";
+import { formatDate, calculateNights, generateBookingNumber } from "@/lib/utils";
+import { useCurrency } from "@/contexts/currency-context";
 
 const accommodationsData: Record<string, {
   id: string;
@@ -84,6 +85,7 @@ function BookingForm() {
   const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { formatPrice } = useCurrency();
   
   const accommodationSlug = searchParams.get("accommodation") || "";
   const checkInParam = searchParams.get("checkIn") || "";
@@ -419,7 +421,7 @@ function BookingForm() {
                         className="flex-1"
                         isLoading={isLoading}
                       >
-                        Confirm & Pay {formatCurrency(total)}
+                        Confirm & Pay {formatPrice(total)}
                       </Button>
                     </div>
                   </CardContent>
@@ -472,25 +474,25 @@ function BookingForm() {
                   <h3 className="font-semibold text-slate-900">Price Details</h3>
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-600">
-                      {formatCurrency(accommodation.price)} x {nights} nights
+                      {formatPrice(accommodation.price)} x {nights} nights
                     </span>
-                    <span>{formatCurrency(subtotal)}</span>
+                    <span>{formatPrice(subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-600">Cleaning fee</span>
-                    <span>{formatCurrency(cleaningFee)}</span>
+                    <span>{formatPrice(cleaningFee)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-600">Service fee</span>
-                    <span>{formatCurrency(serviceFee)}</span>
+                    <span>{formatPrice(serviceFee)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-600">Taxes</span>
-                    <span>{formatCurrency(taxes)}</span>
+                    <span>{formatPrice(taxes)}</span>
                   </div>
                   <div className="flex justify-between font-semibold text-slate-900 pt-3 border-t border-slate-200">
                     <span>Total</span>
-                    <span>{formatCurrency(total)}</span>
+                    <span>{formatPrice(total)}</span>
                   </div>
                 </div>
               </CardContent>

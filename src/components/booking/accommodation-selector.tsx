@@ -15,7 +15,7 @@ import {
   Check,
   ChevronRight
 } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
+import { useCurrency } from "@/contexts/currency-context";
 
 interface AccommodationSelectorProps {
   checkIn: string;
@@ -70,6 +70,7 @@ export function AccommodationSelector({
 }: AccommodationSelectorProps) {
   const [viewMode, setViewMode] = useState<"map" | "grid">("map");
   const [selectedAccommodation, setSelectedAccommodation] = useState<MapAccommodation | null>(null);
+  const { formatPrice } = useCurrency();
 
   // Filter accommodations that can fit the guest count
   const availableAccommodations = useMemo(() => {
@@ -192,7 +193,7 @@ export function AccommodationSelector({
               <div className="flex items-center gap-4">
                 <div className="text-right">
                   <span className="text-2xl font-bold text-emerald-600">
-                    {formatCurrency(selectedAccommodation.price)}
+                    {formatPrice(selectedAccommodation.price)}
                   </span>
                   <span className="text-slate-500">/night</span>
                 </div>

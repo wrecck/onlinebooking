@@ -1,21 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { 
   Waves, 
   TreePine, 
   UtensilsCrossed, 
   Car,
-  Info,
-  X,
   Users,
   Bed,
   Bath
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { formatCurrency } from "@/lib/utils";
+import { useCurrency } from "@/contexts/currency-context";
 
 export type AccommodationStatus = "available" | "booked" | "selected" | "maintenance";
 
@@ -76,6 +73,7 @@ export function ResortMap({
 }: ResortMapProps) {
   const [hoveredAccommodation, setHoveredAccommodation] = useState<MapAccommodation | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const { formatPrice } = useCurrency();
 
   const zones = {
     beachfront: accommodations.filter(a => a.zone === "beachfront"),
@@ -296,7 +294,7 @@ export function ResortMap({
               </span>
             </div>
             <div className="text-emerald-600 font-bold">
-              {formatCurrency(hoveredAccommodation.price)}
+              {formatPrice(hoveredAccommodation.price)}
               <span className="text-slate-500 font-normal text-xs">/night</span>
             </div>
             {hoveredAccommodation.status === "available" && (
