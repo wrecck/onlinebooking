@@ -1,0 +1,11 @@
+{
+  "name": "onlinebooking",
+  "install": "npm install",
+  "terminals": [
+    {
+      "name": "server",
+      "command": "npm start"
+    }
+  ],
+  "ports": [3000]
+}

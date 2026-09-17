@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OnlineBooking</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo">◆</span>
+        <span>OnlineBooking</span>
+      </div>
+      <p class="tagline">Reserve your spot in seconds</p>
+    </header>
+
+    <main class="layout">
+      <section class="panel">
+        <h2>1 · Choose a service</h2>
+        <div id="services" class="services-grid" aria-live="polite"></div>
+      </section>
+
+      <section class="panel">
+        <h2>2 · Pick a time</h2>
+        <form id="slot-controls" class="controls">
+          <label>
+            Date
+            <input type="date" id="date" name="date" required />
+          </label>
+        </form>
+        <div id="slots" class="slots-grid" aria-live="polite">
+          <p class="muted">Select a service and date to see available times.</p>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>3 · Your details</h2>
+        <form id="booking-form" class="booking-form">
+          <label>
+            Full name
+            <input type="text" id="customerName" required placeholder="Ada Lovelace" />
+          </label>
+          <label>
+            Email
+            <input type="email" id="customerEmail" required placeholder="ada@example.com" />
+          </label>
+          <div id="summary" class="summary muted">No time selected yet.</div>
+          <button type="submit" id="confirm-btn" disabled>Confirm booking</button>
+          <p id="form-message" class="form-message" role="status"></p>
+        </form>
+      </section>
+
+      <section class="panel">
+        <h2>Upcoming bookings</h2>
+        <ul id="bookings" class="bookings-list" aria-live="polite"></ul>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
