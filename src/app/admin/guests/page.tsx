@@ -14,6 +14,7 @@ import {
   Eye,
   MoreVertical
 } from "lucide-react";
+import { useCurrency } from "@/contexts/currency-context";
 
 const guests = [
   {
@@ -81,6 +82,7 @@ const statusColors = {
 
 export default function AdminGuestsPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const { formatPrice } = useCurrency();
 
   const filteredGuests = guests.filter((guest) =>
     guest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -131,7 +133,7 @@ export default function AdminGuestsPage() {
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-slate-900">
-              ${guests.reduce((sum, g) => sum + g.totalSpent, 0).toLocaleString()}
+              {formatPrice(guests.reduce((sum, g) => sum + g.totalSpent, 0))}
             </p>
             <p className="text-sm text-slate-500">Total Revenue</p>
           </CardContent>
@@ -201,7 +203,7 @@ export default function AdminGuestsPage() {
                       {guest.totalBookings}
                     </td>
                     <td className="px-4 py-3 text-emerald-600 font-medium">
-                      ${guest.totalSpent.toLocaleString()}
+                      {formatPrice(guest.totalSpent)}
                     </td>
                     <td className="px-4 py-3 text-slate-600">
                       <div className="flex items-center">

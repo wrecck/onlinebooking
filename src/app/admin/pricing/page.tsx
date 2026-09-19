@@ -17,6 +17,7 @@ import {
   Star,
   Clock
 } from "lucide-react";
+import { useCurrency } from "@/contexts/currency-context";
 
 const pricingRules = [
   {
@@ -107,6 +108,7 @@ const typeIcons: Record<string, React.ReactNode> = {
 
 export default function AdminPricingPage() {
   const [editingPrice, setEditingPrice] = useState<string | null>(null);
+  const { formatPrice, currency } = useCurrency();
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return "Always";
@@ -147,7 +149,7 @@ export default function AdminPricingPage() {
                   <th className="pb-3 font-medium">Accommodation</th>
                   <th className="pb-3 font-medium">Code</th>
                   <th className="pb-3 font-medium">Type</th>
-                  <th className="pb-3 font-medium">Base Price (USD/night)</th>
+                  <th className="pb-3 font-medium">Base Price ({currency.code}/night)</th>
                   <th className="pb-3 font-medium">Actions</th>
                 </tr>
               </thead>
@@ -176,7 +178,7 @@ export default function AdminPricingPage() {
                         </div>
                       ) : (
                         <span className="text-emerald-600 font-medium">
-                          ${acc.basePrice}
+                          {formatPrice(acc.basePrice)}
                         </span>
                       )}
                     </td>
@@ -265,7 +267,7 @@ export default function AdminPricingPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold text-slate-900">$50</span>
+              <span className="text-2xl font-bold text-slate-900">{formatPrice(50)}</span>
               <span className="text-slate-500">per booking</span>
             </div>
             <Button variant="outline" size="sm" className="mt-3">

@@ -16,6 +16,7 @@ import {
   Users,
   Bed
 } from "lucide-react";
+import { useCurrency } from "@/contexts/currency-context";
 
 const accommodations = [
   {
@@ -83,6 +84,7 @@ const accommodations = [
 export default function AdminAccommodationsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState("all");
+  const { formatPrice } = useCurrency();
 
   const filteredAccommodations = accommodations.filter((acc) => {
     const matchesSearch = acc.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -173,7 +175,7 @@ export default function AdminAccommodationsPage() {
                     </div>
                     <div className="text-right">
                       <p className="text-lg font-bold text-emerald-600">
-                        ${accommodation.price}
+                        {formatPrice(accommodation.price)}
                         <span className="text-sm font-normal text-slate-500">/night</span>
                       </p>
                       <p className="text-sm text-slate-500">

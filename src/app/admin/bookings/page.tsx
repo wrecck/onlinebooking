@@ -13,6 +13,7 @@ import {
   MoreVertical,
   Download
 } from "lucide-react";
+import { useCurrency } from "@/contexts/currency-context";
 
 const bookings = [
   {
@@ -125,6 +126,7 @@ const paymentColors = {
 export default function AdminBookingsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
+  const { formatPrice } = useCurrency();
 
   const filteredBookings = bookings.filter((booking) => {
     const matchesSearch = 
@@ -185,7 +187,7 @@ export default function AdminBookingsPage() {
           <CardContent className="p-4">
             <p className="text-sm text-slate-500">Total Revenue</p>
             <p className="text-2xl font-bold text-slate-900">
-              ${bookings.reduce((sum, b) => sum + b.total, 0).toLocaleString()}
+              {formatPrice(bookings.reduce((sum, b) => sum + b.total, 0))}
             </p>
           </CardContent>
         </Card>
@@ -270,7 +272,7 @@ export default function AdminBookingsPage() {
                       </Badge>
                     </td>
                     <td className="px-4 py-3 text-right font-medium text-slate-900">
-                      ${booking.total.toLocaleString()}
+                      {formatPrice(booking.total)}
                     </td>
                     <td className="px-4 py-3">
                       <Button variant="ghost" size="sm">

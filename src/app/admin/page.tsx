@@ -1,3 +1,5 @@
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -9,41 +11,7 @@ import {
   ArrowUpRight,
   ArrowDownRight
 } from "lucide-react";
-
-const stats = [
-  {
-    title: "Total Bookings",
-    value: "156",
-    change: "+12%",
-    trend: "up",
-    icon: Calendar,
-    description: "This month",
-  },
-  {
-    title: "Revenue",
-    value: "$45,230",
-    change: "+8%",
-    trend: "up",
-    icon: DollarSign,
-    description: "This month",
-  },
-  {
-    title: "Occupancy Rate",
-    value: "78%",
-    change: "+5%",
-    trend: "up",
-    icon: Home,
-    description: "Average this month",
-  },
-  {
-    title: "Total Guests",
-    value: "342",
-    change: "-3%",
-    trend: "down",
-    icon: Users,
-    description: "This month",
-  },
-];
+import { useCurrency } from "@/contexts/currency-context";
 
 const recentBookings = [
   {
@@ -53,7 +21,7 @@ const recentBookings = [
     checkIn: "Dec 15, 2026",
     checkOut: "Dec 18, 2026",
     status: "confirmed",
-    amount: "$750",
+    amount: 750,
   },
   {
     id: "BK-002",
@@ -62,7 +30,7 @@ const recentBookings = [
     checkIn: "Dec 16, 2026",
     checkOut: "Dec 19, 2026",
     status: "pending",
-    amount: "$540",
+    amount: 540,
   },
   {
     id: "BK-003",
@@ -71,7 +39,7 @@ const recentBookings = [
     checkIn: "Dec 18, 2026",
     checkOut: "Dec 22, 2026",
     status: "confirmed",
-    amount: "$1,600",
+    amount: 1600,
   },
   {
     id: "BK-004",
@@ -80,7 +48,7 @@ const recentBookings = [
     checkIn: "Dec 20, 2026",
     checkOut: "Dec 23, 2026",
     status: "checked_in",
-    amount: "$360",
+    amount: 360,
   },
 ];
 
@@ -92,6 +60,42 @@ const statusColors = {
 } as const;
 
 export default function AdminDashboard() {
+  const { formatPrice } = useCurrency();
+
+  const stats = [
+    {
+      title: "Total Bookings",
+      value: "156",
+      change: "+12%",
+      trend: "up",
+      icon: Calendar,
+      description: "This month",
+    },
+    {
+      title: "Revenue",
+      value: formatPrice(45230),
+      change: "+8%",
+      trend: "up",
+      icon: DollarSign,
+      description: "This month",
+    },
+    {
+      title: "Occupancy Rate",
+      value: "78%",
+      change: "+5%",
+      trend: "up",
+      icon: Home,
+      description: "Average this month",
+    },
+    {
+      title: "Total Guests",
+      value: "342",
+      change: "-3%",
+      trend: "down",
+      icon: Users,
+      description: "This month",
+    },
+  ];
   return (
     <div className="space-y-6">
       {/* Stats Grid */}
@@ -161,7 +165,7 @@ export default function AdminDashboard() {
                         </Badge>
                       </td>
                       <td className="py-3 text-right font-medium text-slate-900">
-                        {booking.amount}
+                        {formatPrice(booking.amount)}
                       </td>
                     </tr>
                   ))}

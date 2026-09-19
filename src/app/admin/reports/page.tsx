@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BarChart3, TrendingUp, TrendingDown, DollarSign, Users, Calendar, Home, Download } from "lucide-react";
+import { useCurrency } from "@/contexts/currency-context";
 
 const monthlyData = [
   { month: "Jan", revenue: 45000, bookings: 85, occupancy: 72 },
@@ -20,6 +21,7 @@ const monthlyData = [
 
 export default function AdminReportsPage() {
   const [dateRange, setDateRange] = useState("this-month");
+  const { formatPrice, convertPrice, currency } = useCurrency();
   const currentMonth = monthlyData[monthlyData.length - 1];
   const previousMonth = monthlyData[monthlyData.length - 2];
   const revenueChange = ((currentMonth.revenue - previousMonth.revenue) / previousMonth.revenue * 100).toFixed(1);
@@ -52,7 +54,7 @@ export default function AdminReportsPage() {
                 {parseFloat(revenueChange) >= 0 ? <TrendingUp className="w-3 h-3 mr-1" /> : <TrendingDown className="w-3 h-3 mr-1" />}{revenueChange}%
               </Badge>
             </div>
-            <p className="text-2xl font-bold text-slate-900">${currentMonth.revenue.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-slate-900">{formatPrice(currentMonth.revenue)}</p>
             <p className="text-sm text-slate-500">Revenue</p>
           </CardContent>
         </Card>
@@ -78,7 +80,7 @@ export default function AdminReportsPage() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2"><Users className="w-5 h-5 text-amber-600" /></div>
-            <p className="text-2xl font-bold text-slate-900">$579</p>
+            <p className="text-2xl font-bold text-slate-900">{formatPrice(579)}</p>
             <p className="text-sm text-slate-500">Avg. Booking Value</p>
           </CardContent>
         </Card>
@@ -97,7 +99,7 @@ export default function AdminReportsPage() {
                   <span className="w-10 text-sm text-slate-500">{data.month}</span>
                   <div className="flex-1 h-8 bg-slate-100 rounded-full overflow-hidden">
                     <div className="h-full bg-emerald-500 rounded-full flex items-center justify-end pr-2" style={{ width: `${(data.revenue / 65000) * 100}%` }}>
-                      <span className="text-xs text-white font-medium">${(data.revenue / 1000).toFixed(0)}k</span>
+                      <span className="text-xs text-white font-medium">{currency.symbol}{(convertPrice(data.revenue) / 1000).toFixed(0)}k</span>
                     </div>
                   </div>
                 </div>
