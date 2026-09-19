@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "cd resort-booking && npm install",
+  "buildCommand": "cd resort-booking && npm run build",
+  "outputDirectory": "resort-booking/.next"
+}
