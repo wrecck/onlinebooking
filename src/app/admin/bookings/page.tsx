@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +11,8 @@ import {
   Calendar,
   Eye,
   MoreVertical,
-  Download
+  Download,
+  UserPlus
 } from "lucide-react";
 import { useCurrency } from "@/contexts/currency-context";
 
@@ -123,12 +124,81 @@ const paymentColors = {
   refunded: "danger",
 } as const;
 
+interface Booking {
+  id: string;
+  bookingNumber?: string;
+  guest: string;
+  email: string;
+  phone: string;
+  accommodation: string;
+  accommodationCode?: string;
+  checkIn: string;
+  checkOut: string;
+  guests: number;
+  nights: number;
+  total: number;
+  status: string;
+  paymentStatus: string;
+  paymentMethod?: string;
+  createdAt: string;
+  isWalkIn?: boolean;
+}
+
 export default function AdminBookingsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const { formatPrice } = useCurrency();
+  const [allBookings, setAllBookings] = useState<Booking[]>(bookings);
 
-  const filteredBookings = bookings.filter((booking) => {
+  useEffect(() => {
+    // Load walk-in bookings from localStorage
+    const walkInBookings = JSON.parse(localStorage.getItem("resort-walkin-bookings") || "[]");
+    
+    // Convert walk-in bookings to match the booking format
+    interface WalkInBooking {
+      id?: string;
+      bookingNumber?: string;
+      guest: string;
+      email: string;
+      phone: string;
+      accommodation: string;
+      accommodationCode?: string;
+      checkIn: string;
+      checkOut: string;
+      guests: number;
+      nights: number;
+      total: number;
+      status?: string;
+      paymentStatus?: string;
+      paymentMethod?: string;
+      createdAt: string;
+    }
+    
+    const formattedWalkInBookings: Booking[] = walkInBookings.map((wb: WalkInBooking) => ({
+      id: wb.id || wb.bookingNumber || `WI-${Date.now()}`,
+      bookingNumber: wb.bookingNumber,
+      guest: wb.guest,
+      email: wb.email,
+      phone: wb.phone,
+      accommodation: wb.accommodation,
+      accommodationCode: wb.accommodationCode,
+      checkIn: wb.checkIn,
+      checkOut: wb.checkOut,
+      guests: wb.guests,
+      nights: wb.nights,
+      total: wb.total,
+      status: wb.status || "confirmed",
+      paymentStatus: wb.paymentStatus || "paid",
+      paymentMethod: wb.paymentMethod,
+      createdAt: wb.createdAt,
+      isWalkIn: true,
+    }));
+
+    // Merge with mock bookings, walk-ins first (most recent)
+    setAllBookings([...formattedWalkInBookings, ...bookings]);
+  }, []);
+
+  const filteredBookings = allBookings.filter((booking) => {
     const matchesSearch = 
       booking.guest.toLowerCase().includes(searchQuery.toLowerCase()) ||
       booking.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -160,18 +230,18 @@ export default function AdminBookingsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-4">
             <p className="text-sm text-slate-500">Total Bookings</p>
-            <p className="text-2xl font-bold text-slate-900">{bookings.length}</p>
+            <p className="text-2xl font-bold text-slate-900">{allBookings.length}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
             <p className="text-sm text-slate-500">Confirmed</p>
             <p className="text-2xl font-bold text-emerald-600">
-              {bookings.filter(b => b.status === "confirmed").length}
+              {allBookings.filter(b => b.status === "confirmed").length}
             </p>
           </CardContent>
         </Card>
@@ -179,7 +249,15 @@ export default function AdminBookingsPage() {
           <CardContent className="p-4">
             <p className="text-sm text-slate-500">Pending</p>
             <p className="text-2xl font-bold text-amber-600">
-              {bookings.filter(b => b.status === "pending").length}
+              {allBookings.filter(b => b.status === "pending").length}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-sm text-slate-500">Walk-in</p>
+            <p className="text-2xl font-bold text-blue-600">
+              {allBookings.filter(b => b.isWalkIn).length}
             </p>
           </CardContent>
         </Card>
@@ -187,7 +265,7 @@ export default function AdminBookingsPage() {
           <CardContent className="p-4">
             <p className="text-sm text-slate-500">Total Revenue</p>
             <p className="text-2xl font-bold text-slate-900">
-              {formatPrice(bookings.reduce((sum, b) => sum + b.total, 0))}
+              {formatPrice(allBookings.reduce((sum, b) => sum + b.total, 0))}
             </p>
           </CardContent>
         </Card>
@@ -243,7 +321,15 @@ export default function AdminBookingsPage() {
                 {filteredBookings.map((booking) => (
                   <tr key={booking.id} className="text-sm hover:bg-slate-50">
                     <td className="px-4 py-3">
-                      <span className="font-medium text-emerald-600">{booking.id}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-emerald-600">{booking.id}</span>
+                        {booking.isWalkIn && (
+                          <Badge variant="info" className="text-xs">
+                            <UserPlus className="w-3 h-3 mr-1" />
+                            Walk-in
+                          </Badge>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <div>

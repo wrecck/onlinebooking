@@ -136,18 +136,97 @@ export default function WalkInBookingPage() {
     }
   };
 
-  const handleCompleteBooking = () => {
-    // In production, this would save to the database
-    console.log("Booking completed:", {
-      accommodation: selectedAccommodation,
-      checkIn,
-      checkOut,
-      guests,
-      guestDetails,
-      paymentMethod,
-      pricing,
-    });
-    setBookingComplete(true);
+  const [bookingError, setBookingError] = useState<string | null>(null);
+  const [bookingId, setBookingId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleCompleteBooking = async () => {
+    if (!selectedAccommodation || !pricing) return;
+    
+    setIsSubmitting(true);
+    setBookingError(null);
+    
+    try {
+      const response = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          accommodationId: selectedAccommodation.id,
+          checkIn,
+          checkOut,
+          guestsCount: guests,
+          guestName: guestDetails.name,
+          guestEmail: guestDetails.email || `walkin-${Date.now()}@resort.local`,
+          guestPhone: guestDetails.phone,
+          specialRequests: guestDetails.notes,
+          paymentMethod,
+          isWalkIn: true,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to create booking");
+      }
+
+      const booking = await response.json();
+      setBookingId(booking.bookingNumber || booking.id);
+      setBookingComplete(true);
+      
+      // Also save to localStorage for display in admin bookings (temporary solution)
+      const existingBookings = JSON.parse(localStorage.getItem("resort-walkin-bookings") || "[]");
+      existingBookings.unshift({
+        id: `WI-${Date.now()}`,
+        bookingNumber: booking.bookingNumber || `WI-${Date.now()}`,
+        guest: guestDetails.name,
+        email: guestDetails.email,
+        phone: guestDetails.phone,
+        accommodation: selectedAccommodation.name,
+        accommodationCode: selectedAccommodation.code,
+        checkIn,
+        checkOut,
+        guests,
+        nights,
+        total: pricing.total,
+        status: "confirmed",
+        paymentStatus: "paid",
+        paymentMethod,
+        createdAt: new Date().toISOString(),
+        isWalkIn: true,
+      });
+      localStorage.setItem("resort-walkin-bookings", JSON.stringify(existingBookings.slice(0, 50)));
+      
+    } catch (error) {
+      console.error("Booking error:", error);
+      setBookingError(error instanceof Error ? error.message : "Failed to create booking. Please try again.");
+      
+      // Fallback: Save to localStorage only if API fails
+      const existingBookings = JSON.parse(localStorage.getItem("resort-walkin-bookings") || "[]");
+      existingBookings.unshift({
+        id: `WI-${Date.now()}`,
+        bookingNumber: `WI-${Date.now()}`,
+        guest: guestDetails.name,
+        email: guestDetails.email,
+        phone: guestDetails.phone,
+        accommodation: selectedAccommodation.name,
+        accommodationCode: selectedAccommodation.code,
+        checkIn,
+        checkOut,
+        guests,
+        nights,
+        total: pricing.total,
+        status: "confirmed",
+        paymentStatus: "paid",
+        paymentMethod,
+        createdAt: new Date().toISOString(),
+        isWalkIn: true,
+      });
+      localStorage.setItem("resort-walkin-bookings", JSON.stringify(existingBookings.slice(0, 50)));
+      setBookingId(`WI-${Date.now()}`);
+      setBookingComplete(true);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const renderAccommodationUnit = (acc: MapAccommodation) => {
@@ -182,9 +261,12 @@ export default function WalkInBookingPage() {
               <Check className="w-8 h-8 text-emerald-600" />
             </div>
             <h2 className="text-2xl font-bold text-slate-900 mb-2">Booking Complete!</h2>
-            <p className="text-slate-600 mb-6">
+            <p className="text-slate-600 mb-2">
               Walk-in booking for <strong>{guestDetails.name}</strong> has been created successfully.
             </p>
+            {bookingId && (
+              <p className="text-emerald-600 font-medium mb-4">Booking ID: {bookingId}</p>
+            )}
             <div className="bg-white rounded-lg p-4 mb-6 text-left">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
@@ -219,8 +301,13 @@ export default function WalkInBookingPage() {
               </Button>
               <Button onClick={() => {
                 setBookingComplete(false);
+                setBookingId(null);
+                setBookingError(null);
                 setStep(1);
                 setSelectedAccommodation(null);
+                setCheckOut("");
+                setGuests(1);
+                setPaymentMethod("cash");
                 setGuestDetails({ name: "", email: "", phone: "", idType: "passport", idNumber: "", notes: "" });
                 setPaymentReceived(false);
               }}>
@@ -594,10 +681,18 @@ export default function WalkInBookingPage() {
                 </Button>
                 <Button 
                   className="flex-1" 
-                  disabled={!paymentReceived}
+                  disabled={!paymentReceived || isSubmitting}
                   onClick={handleCompleteBooking}
                 >
-                  <Check className="w-4 h-4 mr-1" /> Complete Booking
+                  {isSubmitting ? (
+                    <>
+                      <span className="animate-spin mr-2">⏳</span> Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4 mr-1" /> Complete Booking
+                    </>
+                  )}
                 </Button>
               </div>
             </CardContent>
