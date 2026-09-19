@@ -5,6 +5,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";
 import { Menu, X, User, Calendar, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CurrencySelector } from "@/components/ui/currency-selector";
 
 export function Header() {
   const { data: session } = useSession();
@@ -45,6 +46,7 @@ export function Header() {
           </div>
 
           <div className="hidden md:flex items-center space-x-4">
+            <CurrencySelector />
             {session ? (
               <div className="flex items-center space-x-4">
                 <Link

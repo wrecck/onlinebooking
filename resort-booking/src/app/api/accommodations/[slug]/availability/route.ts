@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/db";
+import { getPrisma } from "@/lib/db";
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const prisma = getPrisma();
     const { slug } = await params;
     const { searchParams } = new URL(request.url);
     const checkIn = searchParams.get("checkIn");
