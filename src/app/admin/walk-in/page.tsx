@@ -325,7 +325,7 @@ export default function WalkInBookingPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Walk-in Booking</h1>
-          <p className="text-slate-600">Create a booking for walk-in customers</p>
+          <p className="text-slate-600">Create a booking for walk-in customers (v2)</p>
         </div>
         <div className="flex items-center gap-2">
           {[1, 2, 3].map((s) => (
@@ -674,6 +674,13 @@ export default function WalkInBookingPage() {
                   </span>
                 </label>
               </div>
+
+              {bookingError && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                  <strong>Error:</strong> {bookingError}
+                  <p className="text-xs mt-1 text-red-500">Booking saved locally as fallback.</p>
+                </div>
+              )}
 
               <div className="flex gap-4 pt-4">
                 <Button variant="outline" onClick={() => setStep(2)}>
