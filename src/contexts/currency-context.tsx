@@ -35,11 +35,32 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   const [currency, setCurrencyState] = useState<Currency>(currencies[0]);
 
   useEffect(() => {
-    // Load saved currency from localStorage
-    const saved = localStorage.getItem("resort-currency");
-    if (saved) {
-      const found = currencies.find(c => c.code === saved);
-      if (found) setCurrencyState(found);
+    // First check for user's saved currency preference
+    const userCurrency = localStorage.getItem("resort-currency");
+    if (userCurrency) {
+      const found = currencies.find(c => c.code === userCurrency);
+      if (found) {
+        setCurrencyState(found);
+        return;
+      }
+    }
+    
+    // If no user preference, check admin's default currency setting
+    const adminSettings = localStorage.getItem("resort-admin-settings");
+    if (adminSettings) {
+      try {
+        const settings = JSON.parse(adminSettings);
+        if (settings.defaultCurrency) {
+          const found = currencies.find(c => c.code === settings.defaultCurrency);
+          if (found) {
+            setCurrencyState(found);
+            // Also save as user preference so it persists
+            localStorage.setItem("resort-currency", found.code);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to parse admin settings:", e);
+      }
     }
   }, []);
 

@@ -14,7 +14,7 @@ import {
   Check,
   Loader2
 } from "lucide-react";
-import { currencies } from "@/contexts/currency-context";
+import { currencies, useCurrency } from "@/contexts/currency-context";
 
 const SETTINGS_KEY = "resort-admin-settings";
 
@@ -37,6 +37,7 @@ export default function AdminSettingsPage() {
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState(defaultSettings);
+  const { setCurrency } = useCurrency();
 
   // Load settings from localStorage on mount
   useEffect(() => {
@@ -60,6 +61,13 @@ export default function AdminSettingsPage() {
   const handleSave = () => {
     // Save to localStorage
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    
+    // Also update the display currency to match the new default
+    const newCurrency = currencies.find(c => c.code === settings.defaultCurrency);
+    if (newCurrency) {
+      setCurrency(newCurrency);
+    }
+    
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
