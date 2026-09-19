@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import prisma from "@/lib/db";
+import { getPrisma } from "@/lib/db";
 import { authOptions } from "@/lib/auth";
 import { generateBookingNumber, calculateNights } from "@/lib/utils";
 
 export async function GET(request: Request) {
   try {
+    const prisma = getPrisma();
     const session = await getServerSession(authOptions);
 
     if (!session) {
@@ -56,6 +57,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const prisma = getPrisma();
     const session = await getServerSession(authOptions);
     const body = await request.json();
 

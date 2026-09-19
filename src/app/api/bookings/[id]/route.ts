@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import prisma from "@/lib/db";
+import { getPrisma } from "@/lib/db";
 import { authOptions } from "@/lib/auth";
 
 export async function GET(
@@ -8,6 +8,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const prisma = getPrisma();
     const session = await getServerSession(authOptions);
     const { id } = await params;
 
@@ -66,6 +67,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const prisma = getPrisma();
     const session = await getServerSession(authOptions);
     const { id } = await params;
     const body = await request.json();
@@ -137,6 +139,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const prisma = getPrisma();
     const session = await getServerSession(authOptions);
     const { id } = await params;
 

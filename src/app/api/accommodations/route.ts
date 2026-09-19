@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/db";
+import { getPrisma } from "@/lib/db";
 
 export async function GET(request: Request) {
   try {
+    const prisma = getPrisma();
     const { searchParams } = new URL(request.url);
     const type = searchParams.get("type");
     const featured = searchParams.get("featured");
@@ -70,6 +71,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const prisma = getPrisma();
     const body = await request.json();
     const {
       propertyId,

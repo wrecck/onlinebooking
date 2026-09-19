@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/db";
+import { getPrisma } from "@/lib/db";
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const prisma = getPrisma();
     const { slug } = await params;
 
     const accommodation = await prisma.accommodation.findUnique({
@@ -69,6 +70,7 @@ export async function PATCH(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const prisma = getPrisma();
     const { slug } = await params;
     const body = await request.json();
 
@@ -100,6 +102,7 @@ export async function DELETE(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const prisma = getPrisma();
     const { slug } = await params;
 
     await prisma.accommodation.delete({
