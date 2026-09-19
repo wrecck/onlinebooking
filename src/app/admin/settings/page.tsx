@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,31 +8,49 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Building, 
   Globe, 
-  Mail, 
-  Phone, 
   Clock, 
   DollarSign,
   Save,
-  Check
+  Check,
+  Loader2
 } from "lucide-react";
 import { currencies } from "@/contexts/currency-context";
 
+const SETTINGS_KEY = "resort-admin-settings";
+
+const defaultSettings = {
+  resortName: "Paradise Resort",
+  email: "info@paradiseresort.com",
+  phone: "+1 (555) 123-4567",
+  address: "123 Paradise Lane, Beach City, PC 12345",
+  website: "https://paradiseresort.com",
+  defaultCurrency: "USD",
+  checkInTime: "14:00",
+  checkOutTime: "11:00",
+  taxRate: "8",
+  cleaningFee: "50",
+  serviceFeePercent: "10",
+  cancellationHours: "48",
+};
+
 export default function AdminSettingsPage() {
   const [saved, setSaved] = useState(false);
-  const [settings, setSettings] = useState({
-    resortName: "Paradise Resort",
-    email: "info@paradiseresort.com",
-    phone: "+1 (555) 123-4567",
-    address: "123 Paradise Lane, Beach City, PC 12345",
-    website: "https://paradiseresort.com",
-    defaultCurrency: "USD",
-    checkInTime: "14:00",
-    checkOutTime: "11:00",
-    taxRate: "8",
-    cleaningFee: "50",
-    serviceFeePercent: "10",
-    cancellationHours: "48",
-  });
+  const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState(defaultSettings);
+
+  // Load settings from localStorage on mount
+  useEffect(() => {
+    const savedSettings = localStorage.getItem(SETTINGS_KEY);
+    if (savedSettings) {
+      try {
+        const parsed = JSON.parse(savedSettings);
+        setSettings({ ...defaultSettings, ...parsed });
+      } catch (e) {
+        console.error("Failed to parse saved settings:", e);
+      }
+    }
+    setLoading(false);
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setSettings({ ...settings, [e.target.name]: e.target.value });
@@ -40,11 +58,19 @@ export default function AdminSettingsPage() {
   };
 
   const handleSave = () => {
-    // In production, this would save to the database
-    console.log("Saving settings:", settings);
+    // Save to localStorage
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
