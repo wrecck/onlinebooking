@@ -12,12 +12,14 @@ import {
   Settings,
   BarChart3,
   DollarSign,
-  ChevronLeft
+  ChevronLeft,
+  UserPlus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const sidebarLinks = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/walk-in", label: "Walk-in Booking", icon: UserPlus },
   { href: "/admin/accommodations", label: "Accommodations", icon: Home },
   { href: "/admin/bookings", label: "Bookings", icon: Calendar },
   { href: "/admin/guests", label: "Guests", icon: Users },
