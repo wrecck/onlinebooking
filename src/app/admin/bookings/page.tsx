@@ -12,7 +12,15 @@ import {
   Eye,
   MoreVertical,
   Download,
-  UserPlus
+  UserPlus,
+  X,
+  Mail,
+  Phone,
+  CreditCard,
+  User,
+  Home,
+  Clock,
+  Printer
 } from "lucide-react";
 import { useCurrency } from "@/contexts/currency-context";
 
@@ -149,6 +157,7 @@ export default function AdminBookingsPage() {
   const [selectedStatus, setSelectedStatus] = useState("all");
   const { formatPrice } = useCurrency();
   const [allBookings, setAllBookings] = useState<Booking[]>(bookings);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
   useEffect(() => {
     // Load walk-in bookings from localStorage
@@ -361,7 +370,12 @@ export default function AdminBookingsPage() {
                       {formatPrice(booking.total)}
                     </td>
                     <td className="px-4 py-3">
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => setSelectedBooking(booking)}
+                        title="View details"
+                      >
                         <Eye className="w-4 h-4" />
                       </Button>
                     </td>
@@ -379,6 +393,178 @@ export default function AdminBookingsPage() {
             <p className="text-slate-500">No bookings found</p>
           </CardContent>
         </Card>
+      )}
+
+      {/* Booking Details Modal */}
+      {selectedBooking && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-slate-200">
+              <div>
+                <h2 className="text-xl font-bold text-slate-900">Booking Details</h2>
+                <p className="text-sm text-slate-500">{selectedBooking.id}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                {selectedBooking.isWalkIn && (
+                  <Badge variant="info">
+                    <UserPlus className="w-3 h-3 mr-1" />
+                    Walk-in
+                  </Badge>
+                )}
+                <Button variant="ghost" size="sm" onClick={() => setSelectedBooking(null)}>
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-6">
+              {/* Status Row */}
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-slate-500">Status:</span>
+                  <Badge variant={statusColors[selectedBooking.status as keyof typeof statusColors]}>
+                    {selectedBooking.status.replace("_", " ")}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-slate-500">Payment:</span>
+                  <Badge variant={paymentColors[selectedBooking.paymentStatus as keyof typeof paymentColors]}>
+                    {selectedBooking.paymentStatus}
+                  </Badge>
+                </div>
+                {selectedBooking.paymentMethod && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-slate-500">Method:</span>
+                    <span className="text-sm font-medium capitalize">{selectedBooking.paymentMethod.replace("_", " ")}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Guest Information */}
+              <div className="bg-slate-50 rounded-lg p-4">
+                <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                  <User className="w-4 h-4 text-emerald-600" />
+                  Guest Information
+                </h3>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase tracking-wider">Name</p>
+                    <p className="font-medium text-slate-900">{selectedBooking.guest}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase tracking-wider">Email</p>
+                    <p className="font-medium text-slate-900 flex items-center gap-1">
+                      <Mail className="w-3 h-3" />
+                      {selectedBooking.email}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase tracking-wider">Phone</p>
+                    <p className="font-medium text-slate-900 flex items-center gap-1">
+                      <Phone className="w-3 h-3" />
+                      {selectedBooking.phone}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase tracking-wider">Guests</p>
+                    <p className="font-medium text-slate-900">{selectedBooking.guests} guest(s)</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Accommodation */}
+              <div className="bg-slate-50 rounded-lg p-4">
+                <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                  <Home className="w-4 h-4 text-emerald-600" />
+                  Accommodation
+                </h3>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase tracking-wider">Property</p>
+                    <p className="font-medium text-slate-900">{selectedBooking.accommodation}</p>
+                    {selectedBooking.accommodationCode && (
+                      <p className="text-sm text-slate-500">Unit: {selectedBooking.accommodationCode}</p>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase tracking-wider">Duration</p>
+                    <p className="font-medium text-slate-900">{selectedBooking.nights} night(s)</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Dates */}
+              <div className="bg-slate-50 rounded-lg p-4">
+                <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-emerald-600" />
+                  Dates
+                </h3>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase tracking-wider">Check-in</p>
+                    <p className="font-medium text-slate-900">{formatDate(selectedBooking.checkIn)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase tracking-wider">Check-out</p>
+                    <p className="font-medium text-slate-900">{formatDate(selectedBooking.checkOut)}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Payment Summary */}
+              <div className="bg-emerald-50 rounded-lg p-4">
+                <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                  <CreditCard className="w-4 h-4 text-emerald-600" />
+                  Payment Summary
+                </h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-600">Subtotal</span>
+                    <span>{formatPrice(selectedBooking.total * 0.92)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-600">Tax (8%)</span>
+                    <span>{formatPrice(selectedBooking.total * 0.08)}</span>
+                  </div>
+                  <hr className="border-emerald-200" />
+                  <div className="flex justify-between text-lg font-bold">
+                    <span className="text-slate-900">Total</span>
+                    <span className="text-emerald-600">{formatPrice(selectedBooking.total)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Booking Meta */}
+              <div className="flex items-center justify-between text-sm text-slate-500">
+                <div className="flex items-center gap-1">
+                  <Clock className="w-4 h-4" />
+                  Booked on {formatDate(selectedBooking.createdAt)}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-between p-6 border-t border-slate-200 bg-slate-50">
+              <Button variant="outline" onClick={() => window.print()}>
+                <Printer className="w-4 h-4 mr-2" />
+                Print
+              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setSelectedBooking(null)}>
+                  Close
+                </Button>
+                {selectedBooking.status === "pending" && (
+                  <Button>Confirm Booking</Button>
+                )}
+                {selectedBooking.status === "confirmed" && (
+                  <Button>Check-in Guest</Button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
