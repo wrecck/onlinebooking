@@ -159,6 +159,15 @@ export default function WalkInBookingPage() {
     });
   }, [checkIn, checkOut, existingBookings]);
 
+  // Clear selection if the selected accommodation becomes unavailable when dates change
+  useEffect(() => {
+    if (selectedAccommodation && checkIn && checkOut) {
+      if (isAccommodationBooked(selectedAccommodation.code)) {
+        setSelectedAccommodation(null);
+      }
+    }
+  }, [checkIn, checkOut, existingBookings]);
+
   const zones = useMemo(() => ({
     beachfront: accommodationsWithAvailability.filter(a => a.zone === "beachfront"),
     garden: accommodationsWithAvailability.filter(a => a.zone === "garden"),
