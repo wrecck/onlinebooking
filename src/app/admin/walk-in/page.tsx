@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -83,6 +83,13 @@ const paymentMethods = [
   { id: "bank_transfer", name: "Bank Transfer", icon: Building },
 ];
 
+interface StoredBooking {
+  accommodationCode?: string;
+  checkIn: string;
+  checkOut: string;
+  status?: string;
+}
+
 export default function WalkInBookingPage() {
   const { formatPrice } = useCurrency();
   const [step, setStep] = useState(1);
@@ -93,6 +100,7 @@ export default function WalkInBookingPage() {
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [paymentReceived, setPaymentReceived] = useState(false);
   const [bookingComplete, setBookingComplete] = useState(false);
+  const [existingBookings, setExistingBookings] = useState<StoredBooking[]>([]);
   const [guestDetails, setGuestDetails] = useState({
     name: "",
     email: "",
@@ -102,18 +110,67 @@ export default function WalkInBookingPage() {
     notes: "",
   });
 
+  // Load existing bookings from localStorage
+  useEffect(() => {
+    const loadBookings = () => {
+      const walkInBookings = JSON.parse(localStorage.getItem("resort-walkin-bookings") || "[]");
+      setExistingBookings(walkInBookings);
+    };
+    loadBookings();
+    
+    // Also listen for storage changes (in case another tab adds a booking)
+    window.addEventListener("storage", loadBookings);
+    return () => window.removeEventListener("storage", loadBookings);
+  }, []);
+
+  // Check if an accommodation is booked for the selected dates
+  const isAccommodationBooked = (accCode: string): boolean => {
+    if (!checkIn || !checkOut) return false;
+    
+    const selectedCheckIn = new Date(checkIn);
+    const selectedCheckOut = new Date(checkOut);
+    
+    return existingBookings.some((booking: StoredBooking) => {
+      if (booking.accommodationCode !== accCode) return false;
+      if (booking.status === "cancelled") return false;
+      
+      const bookingCheckIn = new Date(booking.checkIn);
+      const bookingCheckOut = new Date(booking.checkOut);
+      
+      // Check for date overlap
+      return (
+        (selectedCheckIn < bookingCheckOut && selectedCheckOut > bookingCheckIn)
+      );
+    });
+  };
+
+  // Get accommodations with dynamic availability based on selected dates
+  const accommodationsWithAvailability = useMemo(() => {
+    return sampleAccommodations.map(acc => {
+      // If it's already marked as maintenance, keep it
+      if (acc.status === "maintenance") return acc;
+      
+      // Check if booked for selected dates
+      if (isAccommodationBooked(acc.code)) {
+        return { ...acc, status: "booked" as AccommodationStatus };
+      }
+      
+      return { ...acc, status: "available" as AccommodationStatus };
+    });
+  }, [checkIn, checkOut, existingBookings]);
+
   const zones = useMemo(() => ({
-    beachfront: sampleAccommodations.filter(a => a.zone === "beachfront"),
-    garden: sampleAccommodations.filter(a => a.zone === "garden"),
-    hillside: sampleAccommodations.filter(a => a.zone === "hillside"),
-    poolside: sampleAccommodations.filter(a => a.zone === "poolside"),
-  }), []);
+    beachfront: accommodationsWithAvailability.filter(a => a.zone === "beachfront"),
+    garden: accommodationsWithAvailability.filter(a => a.zone === "garden"),
+    hillside: accommodationsWithAvailability.filter(a => a.zone === "hillside"),
+    poolside: accommodationsWithAvailability.filter(a => a.zone === "poolside"),
+  }), [accommodationsWithAvailability]);
 
   const stats = useMemo(() => ({
-    available: sampleAccommodations.filter(a => a.status === "available").length,
-    booked: sampleAccommodations.filter(a => a.status === "booked").length,
-    total: sampleAccommodations.length,
-  }), []);
+    available: accommodationsWithAvailability.filter(a => a.status === "available").length,
+    booked: accommodationsWithAvailability.filter(a => a.status === "booked").length,
+    total: accommodationsWithAvailability.length,
+  }), [accommodationsWithAvailability]);
 
   const nights = useMemo(() => {
     if (!checkIn || !checkOut) return 0;
@@ -173,9 +230,9 @@ export default function WalkInBookingPage() {
       setBookingId(booking.bookingNumber || booking.id);
       setBookingComplete(true);
       
-      // Also save to localStorage for display in admin bookings (temporary solution)
-      const existingBookings = JSON.parse(localStorage.getItem("resort-walkin-bookings") || "[]");
-      existingBookings.unshift({
+      // Save to localStorage for display in admin bookings and availability tracking
+      const storedBookings = JSON.parse(localStorage.getItem("resort-walkin-bookings") || "[]");
+      const newBooking = {
         id: `WI-${Date.now()}`,
         bookingNumber: booking.bookingNumber || `WI-${Date.now()}`,
         guest: guestDetails.name,
@@ -193,16 +250,19 @@ export default function WalkInBookingPage() {
         paymentMethod,
         createdAt: new Date().toISOString(),
         isWalkIn: true,
-      });
-      localStorage.setItem("resort-walkin-bookings", JSON.stringify(existingBookings.slice(0, 50)));
+      };
+      storedBookings.unshift(newBooking);
+      localStorage.setItem("resort-walkin-bookings", JSON.stringify(storedBookings.slice(0, 50)));
+      // Update state to refresh availability map
+      setExistingBookings(storedBookings.slice(0, 50));
       
     } catch (error) {
       console.error("Booking error:", error);
       setBookingError(error instanceof Error ? error.message : "Failed to create booking. Please try again.");
       
       // Fallback: Save to localStorage only if API fails
-      const existingBookings = JSON.parse(localStorage.getItem("resort-walkin-bookings") || "[]");
-      existingBookings.unshift({
+      const storedBookingsFallback = JSON.parse(localStorage.getItem("resort-walkin-bookings") || "[]");
+      const newBookingFallback = {
         id: `WI-${Date.now()}`,
         bookingNumber: `WI-${Date.now()}`,
         guest: guestDetails.name,
@@ -220,8 +280,11 @@ export default function WalkInBookingPage() {
         paymentMethod,
         createdAt: new Date().toISOString(),
         isWalkIn: true,
-      });
-      localStorage.setItem("resort-walkin-bookings", JSON.stringify(existingBookings.slice(0, 50)));
+      };
+      storedBookingsFallback.unshift(newBookingFallback);
+      localStorage.setItem("resort-walkin-bookings", JSON.stringify(storedBookingsFallback.slice(0, 50)));
+      // Update state to refresh availability map
+      setExistingBookings(storedBookingsFallback.slice(0, 50));
       setBookingId(`WI-${Date.now()}`);
       setBookingComplete(true);
     } finally {
