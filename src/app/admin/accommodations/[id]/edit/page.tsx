@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import { useCurrency } from "@/contexts/currency-context";
 
+const STORAGE_KEY = "resort-accommodations";
+
 const accommodationTypes = [
   { value: "ROOM", label: "Room" },
   { value: "COTTAGE", label: "Cottage" },
@@ -26,6 +28,16 @@ const accommodationTypes = [
   { value: "SUITE", label: "Suite" },
   { value: "BUNGALOW", label: "Bungalow" },
   { value: "CABIN", label: "Cabin" },
+];
+
+const accommodationZones = [
+  { value: "", label: "Select Zone (for map)" },
+  { value: "BEACHFRONT", label: "Beachfront" },
+  { value: "GARDEN", label: "Garden" },
+  { value: "POOLSIDE", label: "Poolside" },
+  { value: "HILLSIDE", label: "Hillside" },
+  { value: "LAKEFRONT", label: "Lakefront" },
+  { value: "MOUNTAINVIEW", label: "Mountain View" },
 ];
 
 const amenitiesList = [
@@ -45,25 +57,31 @@ const amenitiesList = [
   "Parking",
 ];
 
-const mockAccommodations: Record<string, {
+interface StoredAccommodation {
   id: string;
   name: string;
   slug: string;
+  code?: string | null;
+  zone?: string | null;
   type: string;
-  description: string;
+  description?: string;
   price: number;
   maxGuests: number;
   bedrooms: number;
   bathrooms: number;
-  size: number;
-  amenities: string[];
+  size?: number | null;
+  amenities?: string[];
   status: string;
-  images: string[];
-}> = {
+  images?: string[];
+}
+
+const mockAccommodations: Record<string, StoredAccommodation> = {
   "1": {
     id: "1",
     name: "Ocean View Cottage",
     slug: "ocean-view-cottage",
+    code: "BF-1",
+    zone: "BEACHFRONT",
     type: "COTTAGE",
     description: "A beautiful cottage with stunning ocean views. Perfect for couples or small families looking for a peaceful retreat by the sea.",
     price: 250,
@@ -79,6 +97,8 @@ const mockAccommodations: Record<string, {
     id: "2",
     name: "Garden Suite",
     slug: "garden-suite",
+    code: "GR-1",
+    zone: "GARDEN",
     type: "SUITE",
     description: "Elegant suite surrounded by lush tropical gardens. Features modern amenities and a private terrace.",
     price: 180,
@@ -94,6 +114,8 @@ const mockAccommodations: Record<string, {
     id: "3",
     name: "Family Villa",
     slug: "family-villa",
+    code: "HV-1",
+    zone: "HILLSIDE",
     type: "VILLA",
     description: "Spacious villa perfect for large families or groups. Features multiple bedrooms, a full kitchen, and private pool access.",
     price: 400,
@@ -109,6 +131,8 @@ const mockAccommodations: Record<string, {
     id: "4",
     name: "Deluxe Room",
     slug: "deluxe-room",
+    code: "GR-2",
+    zone: "GARDEN",
     type: "ROOM",
     description: "Comfortable deluxe room with all modern amenities. Currently under maintenance.",
     price: 120,
@@ -124,6 +148,8 @@ const mockAccommodations: Record<string, {
     id: "5",
     name: "Beachfront Bungalow",
     slug: "beachfront-bungalow",
+    code: "BF-2",
+    zone: "BEACHFRONT",
     type: "BUNGALOW",
     description: "Charming bungalow steps away from the beach. Wake up to the sound of waves and enjoy direct beach access.",
     price: 320,
@@ -149,6 +175,8 @@ export default function EditAccommodationPage() {
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
+    code: "",
+    zone: "",
     type: "ROOM",
     description: "",
     price: "",
@@ -162,20 +190,35 @@ export default function EditAccommodationPage() {
   });
 
   useEffect(() => {
-    const accommodation = mockAccommodations[id];
+    // First try to load from localStorage
+    const stored = localStorage.getItem(STORAGE_KEY);
+    let accommodation: StoredAccommodation | undefined;
+    
+    if (stored) {
+      const accommodations: StoredAccommodation[] = JSON.parse(stored);
+      accommodation = accommodations.find(acc => acc.id === id);
+    }
+    
+    // Fall back to mock data if not found in localStorage
+    if (!accommodation) {
+      accommodation = mockAccommodations[id];
+    }
+    
     if (accommodation) {
       setFormData({
         name: accommodation.name,
         slug: accommodation.slug,
+        code: accommodation.code || "",
+        zone: accommodation.zone || "",
         type: accommodation.type,
-        description: accommodation.description,
+        description: accommodation.description || "",
         price: accommodation.price.toString(),
         maxGuests: accommodation.maxGuests.toString(),
         bedrooms: accommodation.bedrooms.toString(),
         bathrooms: accommodation.bathrooms.toString(),
-        size: accommodation.size.toString(),
-        amenities: accommodation.amenities,
-        images: accommodation.images,
+        size: accommodation.size?.toString() || "",
+        amenities: accommodation.amenities || [],
+        images: accommodation.images || [],
         status: accommodation.status,
       });
     } else {
@@ -205,9 +248,38 @@ export default function EditAccommodationPage() {
     e.preventDefault();
     setSaving(true);
     
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Update in localStorage
+    const stored = localStorage.getItem(STORAGE_KEY);
+    let accommodations: StoredAccommodation[] = stored ? JSON.parse(stored) : [];
     
-    console.log("Updating accommodation:", { id, ...formData });
+    const updatedAccommodation: StoredAccommodation = {
+      id,
+      name: formData.name,
+      slug: formData.slug,
+      code: formData.code || null,
+      zone: formData.zone || null,
+      type: formData.type,
+      description: formData.description,
+      price: parseFloat(formData.price) || 0,
+      maxGuests: parseInt(formData.maxGuests) || 2,
+      bedrooms: parseInt(formData.bedrooms) || 1,
+      bathrooms: parseInt(formData.bathrooms) || 1,
+      size: formData.size ? parseInt(formData.size) : null,
+      amenities: formData.amenities,
+      images: formData.images,
+      status: formData.status,
+    };
+    
+    const existingIndex = accommodations.findIndex(acc => acc.id === id);
+    if (existingIndex >= 0) {
+      accommodations[existingIndex] = updatedAccommodation;
+    } else {
+      accommodations.push(updatedAccommodation);
+    }
+    
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(accommodations));
+    
+    console.log("Updated accommodation:", updatedAccommodation);
     
     setSaving(false);
     router.push("/admin/accommodations");
@@ -293,6 +365,39 @@ export default function EditAccommodationPage() {
                       onChange={handleChange}
                       placeholder="ocean-view-cottage"
                     />
+                  </div>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Unit Code (for map)
+                    </label>
+                    <Input
+                      name="code"
+                      value={formData.code}
+                      onChange={handleChange}
+                      placeholder="e.g., BF-1, GR-2"
+                    />
+                    <p className="text-xs text-slate-500 mt-1">Displayed on the walk-in booking map</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Zone (for map)
+                    </label>
+                    <select
+                      name="zone"
+                      value={formData.zone}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    >
+                      {accommodationZones.map(zone => (
+                        <option key={zone.value} value={zone.value}>
+                          {zone.label}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-slate-500 mt-1">Section on the resort map</p>
                   </div>
                 </div>
 

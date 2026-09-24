@@ -25,6 +25,7 @@ import { useCurrency } from "@/contexts/currency-context";
 import { cn } from "@/lib/utils";
 
 type AccommodationStatus = "available" | "booked" | "selected" | "maintenance";
+type ZoneType = "beachfront" | "garden" | "hillside" | "poolside" | "lakefront" | "mountainview";
 
 interface MapAccommodation {
   id: string;
@@ -36,29 +37,40 @@ interface MapAccommodation {
   bedrooms: number;
   bathrooms: number;
   status: AccommodationStatus;
-  zone: "beachfront" | "garden" | "hillside" | "poolside";
+  zone: ZoneType;
 }
 
-const sampleAccommodations: MapAccommodation[] = [
+interface StoredAccommodation {
+  id: string;
+  name: string;
+  code?: string | null;
+  zone?: string | null;
+  type: string;
+  price: number;
+  maxGuests: number;
+  bedrooms: number;
+  bathrooms: number;
+  status: string;
+}
+
+const ACCOMMODATIONS_STORAGE_KEY = "resort-accommodations";
+
+const zoneMapping: Record<string, ZoneType> = {
+  "BEACHFRONT": "beachfront",
+  "GARDEN": "garden",
+  "POOLSIDE": "poolside",
+  "HILLSIDE": "hillside",
+  "LAKEFRONT": "lakefront",
+  "MOUNTAINVIEW": "mountainview",
+};
+
+const defaultAccommodations: MapAccommodation[] = [
   { id: "bf1", code: "BF-1", name: "Beachfront Cottage 1", type: "COTTAGE", price: 320, maxGuests: 4, bedrooms: 2, bathrooms: 1, status: "available", zone: "beachfront" },
-  { id: "bf2", code: "BF-2", name: "Beachfront Cottage 2", type: "COTTAGE", price: 320, maxGuests: 4, bedrooms: 2, bathrooms: 1, status: "booked", zone: "beachfront" },
-  { id: "bf3", code: "BF-3", name: "Beachfront Cottage 3", type: "COTTAGE", price: 350, maxGuests: 6, bedrooms: 3, bathrooms: 2, status: "available", zone: "beachfront" },
-  { id: "bf4", code: "BF-4", name: "Beachfront Cottage 4", type: "COTTAGE", price: 350, maxGuests: 6, bedrooms: 3, bathrooms: 2, status: "available", zone: "beachfront" },
+  { id: "bf2", code: "BF-2", name: "Beachfront Cottage 2", type: "COTTAGE", price: 320, maxGuests: 4, bedrooms: 2, bathrooms: 1, status: "available", zone: "beachfront" },
   { id: "gr1", code: "GR-1", name: "Garden Room 1", type: "ROOM", price: 120, maxGuests: 2, bedrooms: 1, bathrooms: 1, status: "available", zone: "garden" },
-  { id: "gr2", code: "GR-2", name: "Garden Room 2", type: "ROOM", price: 120, maxGuests: 2, bedrooms: 1, bathrooms: 1, status: "booked", zone: "garden" },
-  { id: "gr3", code: "GR-3", name: "Garden Room 3", type: "ROOM", price: 120, maxGuests: 2, bedrooms: 1, bathrooms: 1, status: "booked", zone: "garden" },
-  { id: "gr4", code: "GR-4", name: "Garden Room 4", type: "ROOM", price: 120, maxGuests: 2, bedrooms: 1, bathrooms: 1, status: "available", zone: "garden" },
-  { id: "gr5", code: "GR-5", name: "Garden Room 5", type: "ROOM", price: 140, maxGuests: 3, bedrooms: 1, bathrooms: 1, status: "available", zone: "garden" },
-  { id: "gr6", code: "GR-6", name: "Garden Room 6", type: "ROOM", price: 140, maxGuests: 3, bedrooms: 1, bathrooms: 1, status: "maintenance", zone: "garden" },
+  { id: "gr2", code: "GR-2", name: "Garden Room 2", type: "ROOM", price: 120, maxGuests: 2, bedrooms: 1, bathrooms: 1, status: "available", zone: "garden" },
   { id: "pb1", code: "PB-1", name: "Poolside Bungalow 1", type: "BUNGALOW", price: 250, maxGuests: 4, bedrooms: 2, bathrooms: 2, status: "available", zone: "poolside" },
-  { id: "pb2", code: "PB-2", name: "Poolside Bungalow 2", type: "BUNGALOW", price: 250, maxGuests: 4, bedrooms: 2, bathrooms: 2, status: "booked", zone: "poolside" },
-  { id: "pb3", code: "PB-3", name: "Poolside Bungalow 3", type: "BUNGALOW", price: 250, maxGuests: 4, bedrooms: 2, bathrooms: 2, status: "available", zone: "poolside" },
-  { id: "pb4", code: "PB-4", name: "Poolside Bungalow 4", type: "BUNGALOW", price: 280, maxGuests: 5, bedrooms: 2, bathrooms: 2, status: "available", zone: "poolside" },
   { id: "hv1", code: "HV-1", name: "Hillside Villa 1", type: "VILLA", price: 400, maxGuests: 8, bedrooms: 4, bathrooms: 3, status: "available", zone: "hillside" },
-  { id: "hv2", code: "HV-2", name: "Hillside Villa 2", type: "VILLA", price: 400, maxGuests: 8, bedrooms: 4, bathrooms: 3, status: "booked", zone: "hillside" },
-  { id: "hv3", code: "HV-3", name: "Hillside Villa 3", type: "VILLA", price: 450, maxGuests: 10, bedrooms: 5, bathrooms: 4, status: "available", zone: "hillside" },
-  { id: "hc1", code: "HC-1", name: "Mountain Cabin 1", type: "CABIN", price: 220, maxGuests: 6, bedrooms: 3, bathrooms: 2, status: "available", zone: "hillside" },
-  { id: "hc2", code: "HC-2", name: "Mountain Cabin 2", type: "CABIN", price: 220, maxGuests: 6, bedrooms: 3, bathrooms: 2, status: "available", zone: "hillside" },
 ];
 
 const statusColors: Record<AccommodationStatus, string> = {
@@ -101,6 +113,7 @@ export default function WalkInBookingPage() {
   const [paymentReceived, setPaymentReceived] = useState(false);
   const [bookingComplete, setBookingComplete] = useState(false);
   const [existingBookings, setExistingBookings] = useState<StoredBooking[]>([]);
+  const [baseAccommodations, setBaseAccommodations] = useState<MapAccommodation[]>(defaultAccommodations);
   const [guestDetails, setGuestDetails] = useState({
     name: "",
     email: "",
@@ -109,6 +122,42 @@ export default function WalkInBookingPage() {
     idNumber: "",
     notes: "",
   });
+
+  // Load accommodations from localStorage
+  useEffect(() => {
+    const loadAccommodations = () => {
+      const stored = localStorage.getItem(ACCOMMODATIONS_STORAGE_KEY);
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored) as StoredAccommodation[];
+          const mapped: MapAccommodation[] = parsed
+            .filter(acc => acc.code && acc.zone && acc.status !== "inactive")
+            .map(acc => ({
+              id: acc.id,
+              code: acc.code!,
+              name: acc.name,
+              type: acc.type as MapAccommodation["type"],
+              price: acc.price,
+              maxGuests: acc.maxGuests,
+              bedrooms: acc.bedrooms,
+              bathrooms: acc.bathrooms,
+              status: (acc.status === "maintenance" ? "maintenance" : "available") as AccommodationStatus,
+              zone: zoneMapping[acc.zone!] || "garden",
+            }));
+          
+          if (mapped.length > 0) {
+            setBaseAccommodations(mapped);
+          }
+        } catch (e) {
+          console.error("Failed to parse stored accommodations:", e);
+        }
+      }
+    };
+    
+    loadAccommodations();
+    window.addEventListener("storage", loadAccommodations);
+    return () => window.removeEventListener("storage", loadAccommodations);
+  }, []);
 
   // Load existing bookings from localStorage
   useEffect(() => {
@@ -146,7 +195,7 @@ export default function WalkInBookingPage() {
 
   // Get accommodations with dynamic availability based on selected dates
   const accommodationsWithAvailability = useMemo(() => {
-    return sampleAccommodations.map(acc => {
+    return baseAccommodations.map(acc => {
       // If it's already marked as maintenance, keep it
       if (acc.status === "maintenance") return acc;
       
@@ -157,7 +206,7 @@ export default function WalkInBookingPage() {
       
       return { ...acc, status: "available" as AccommodationStatus };
     });
-  }, [checkIn, checkOut, existingBookings]);
+  }, [baseAccommodations, checkIn, checkOut, existingBookings]);
 
   // Clear selection if the selected accommodation becomes unavailable when dates change
   useEffect(() => {
@@ -170,8 +219,10 @@ export default function WalkInBookingPage() {
 
   const zones = useMemo(() => ({
     beachfront: accommodationsWithAvailability.filter(a => a.zone === "beachfront"),
+    lakefront: accommodationsWithAvailability.filter(a => a.zone === "lakefront"),
     garden: accommodationsWithAvailability.filter(a => a.zone === "garden"),
     hillside: accommodationsWithAvailability.filter(a => a.zone === "hillside"),
+    mountainview: accommodationsWithAvailability.filter(a => a.zone === "mountainview"),
     poolside: accommodationsWithAvailability.filter(a => a.zone === "poolside"),
   }), [accommodationsWithAvailability]);
 
@@ -465,6 +516,16 @@ export default function WalkInBookingPage() {
                 </div>
               )}
 
+              {zones.lakefront.length > 0 && (
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-teal-400 uppercase tracking-wider">Lakefront</span>
+                    <Badge variant="info" className="text-xs">Lake View</Badge>
+                  </div>
+                  <div className="flex justify-center gap-3 flex-wrap">{zones.lakefront.map(renderAccommodationUnit)}</div>
+                </div>
+              )}
+
               {zones.garden.length > 0 && (
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-3">
@@ -503,9 +564,21 @@ export default function WalkInBookingPage() {
                     <span className="text-xs font-medium text-purple-400 uppercase tracking-wider flex items-center">
                       <TreePine className="w-4 h-4 mr-1" />Hillside Villas
                     </span>
-                    <Badge variant="default" className="text-xs">Mountain View</Badge>
+                    <Badge variant="default" className="text-xs">Hill View</Badge>
                   </div>
                   <div className="flex justify-center gap-3 flex-wrap">{zones.hillside.map(renderAccommodationUnit)}</div>
+                </div>
+              )}
+
+              {zones.mountainview.length > 0 && (
+                <div className="mb-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-amber-400 uppercase tracking-wider flex items-center">
+                      <TreePine className="w-4 h-4 mr-1" />Mountain View
+                    </span>
+                    <Badge variant="default" className="text-xs">Mountain View</Badge>
+                  </div>
+                  <div className="flex justify-center gap-3 flex-wrap">{zones.mountainview.map(renderAccommodationUnit)}</div>
                 </div>
               )}
 

@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { useCurrency } from "@/contexts/currency-context";
 
+const STORAGE_KEY = "resort-accommodations";
+
 const accommodationTypes = [
   { value: "ROOM", label: "Room" },
   { value: "COTTAGE", label: "Cottage" },
@@ -24,6 +26,16 @@ const accommodationTypes = [
   { value: "SUITE", label: "Suite" },
   { value: "BUNGALOW", label: "Bungalow" },
   { value: "CABIN", label: "Cabin" },
+];
+
+const accommodationZones = [
+  { value: "", label: "Select Zone (for map)" },
+  { value: "BEACHFRONT", label: "Beachfront" },
+  { value: "GARDEN", label: "Garden" },
+  { value: "POOLSIDE", label: "Poolside" },
+  { value: "HILLSIDE", label: "Hillside" },
+  { value: "LAKEFRONT", label: "Lakefront" },
+  { value: "MOUNTAINVIEW", label: "Mountain View" },
 ];
 
 const amenitiesList = [
@@ -50,6 +62,8 @@ export default function AddAccommodationPage() {
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
+    code: "",
+    zone: "",
     type: "ROOM",
     description: "",
     price: "",
@@ -84,11 +98,33 @@ export default function AddAccommodationPage() {
     e.preventDefault();
     setSaving(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Get existing accommodations from localStorage
+    const stored = localStorage.getItem(STORAGE_KEY);
+    const accommodations = stored ? JSON.parse(stored) : [];
     
-    // In a real app, this would POST to /api/accommodations
-    console.log("Creating accommodation:", formData);
+    const newAccommodation = {
+      id: `acc-${Date.now()}`,
+      name: formData.name,
+      slug: formData.slug,
+      code: formData.code || null,
+      zone: formData.zone || null,
+      type: formData.type,
+      description: formData.description,
+      price: parseFloat(formData.price) || 0,
+      maxGuests: parseInt(formData.maxGuests) || 2,
+      bedrooms: parseInt(formData.bedrooms) || 1,
+      bathrooms: parseInt(formData.bathrooms) || 1,
+      size: formData.size ? parseInt(formData.size) : null,
+      amenities: formData.amenities,
+      status: formData.status,
+      bookings: 0,
+      image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&h=150&fit=crop",
+    };
+    
+    accommodations.push(newAccommodation);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(accommodations));
+    
+    console.log("Created accommodation:", newAccommodation);
     
     setSaving(false);
     router.push("/admin/accommodations");
@@ -144,6 +180,39 @@ export default function AddAccommodationPage() {
                       placeholder="ocean-view-cottage"
                     />
                     <p className="text-xs text-slate-500 mt-1">Auto-generated from name</p>
+                  </div>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Unit Code (for map)
+                    </label>
+                    <Input
+                      name="code"
+                      value={formData.code}
+                      onChange={handleChange}
+                      placeholder="e.g., BF-1, GR-2"
+                    />
+                    <p className="text-xs text-slate-500 mt-1">Displayed on the walk-in booking map</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Zone (for map)
+                    </label>
+                    <select
+                      name="zone"
+                      value={formData.zone}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    >
+                      {accommodationZones.map(zone => (
+                        <option key={zone.value} value={zone.value}>
+                          {zone.label}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-slate-500 mt-1">Section on the resort map</p>
                   </div>
                 </div>
 
@@ -366,6 +435,14 @@ export default function AddAccommodationPage() {
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-600">Name:</span>
                   <span className="font-medium">{formData.name || "-"}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-600">Unit Code:</span>
+                  <span className="font-medium font-mono">{formData.code || "-"}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-600">Zone:</span>
+                  <span className="font-medium">{formData.zone ? accommodationZones.find(z => z.value === formData.zone)?.label : "-"}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-600">Type:</span>

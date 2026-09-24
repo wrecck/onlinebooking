@@ -108,6 +108,8 @@ model Accommodation {
   propertyId      String
   name            String
   slug            String            @unique
+  code            String?           // Unit code for map display (e.g., "BF-1", "GR-2")
+  zone            AccommodationZone? // Map zone/section
   type            AccommodationType
   description     String?           @db.Text
   shortDescription String?
@@ -129,6 +131,15 @@ model Accommodation {
   pricingRules PricingRule[]
   blockedDates BlockedDate[]
   reviews      Review[]
+}
+
+enum AccommodationZone {
+  BEACHFRONT
+  GARDEN
+  POOLSIDE
+  HILLSIDE
+  LAKEFRONT
+  MOUNTAINVIEW
 }
 
 enum AccommodationType {
