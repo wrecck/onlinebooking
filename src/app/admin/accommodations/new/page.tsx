@@ -13,7 +13,8 @@ import {
   Bed,
   Bath,
   Users,
-  Home
+  Home,
+  Trash2
 } from "lucide-react";
 import { useCurrency } from "@/contexts/currency-context";
 
@@ -370,16 +371,85 @@ export default function AddAccommodationPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Images</CardTitle>
-                <CardDescription>Upload photos of the accommodation</CardDescription>
+                <CardDescription>Add photos of the accommodation</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center">
-                  <Upload className="w-10 h-10 text-slate-400 mx-auto mb-3" />
-                  <p className="text-slate-600 mb-2">Drag and drop images here, or click to browse</p>
-                  <p className="text-sm text-slate-500">PNG, JPG up to 5MB each</p>
-                  <Button type="button" variant="outline" className="mt-4">
-                    Select Images
-                  </Button>
+              <CardContent className="space-y-4">
+                {formData.images.length > 0 && (
+                  <div className="grid grid-cols-3 gap-3">
+                    {formData.images.map((img, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={img}
+                          alt={`Preview ${index + 1}`}
+                          className="w-full h-20 object-cover rounded-lg border"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = "https://via.placeholder.com/200x150?text=Invalid+URL";
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFormData(prev => ({
+                              ...prev,
+                              images: prev.images.filter((_, i) => i !== index)
+                            }));
+                          }}
+                          className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-slate-700">
+                    Add Image URL
+                  </label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="url"
+                      placeholder="https://example.com/image.jpg"
+                      id="imageUrlInput"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          const input = e.target as HTMLInputElement;
+                          if (input.value.trim()) {
+                            setFormData(prev => ({
+                              ...prev,
+                              images: [...prev.images, input.value.trim()]
+                            }));
+                            input.value = "";
+                          }
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        const input = document.getElementById("imageUrlInput") as HTMLInputElement;
+                        if (input?.value.trim()) {
+                          setFormData(prev => ({
+                            ...prev,
+                            images: [...prev.images, input.value.trim()]
+                          }));
+                          input.value = "";
+                        }
+                      }}
+                    >
+                      Add
+                    </Button>
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    Paste an image URL and click Add (or press Enter)
+                  </p>
+                </div>
+                <div className="text-center pt-2">
+                  <p className="text-xs text-slate-400">
+                    Tip: Use free image hosts like Unsplash, Imgur, or Cloudinary
+                  </p>
                 </div>
               </CardContent>
             </Card>
