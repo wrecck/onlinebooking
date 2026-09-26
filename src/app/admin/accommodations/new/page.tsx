@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -60,6 +60,7 @@ export default function AddAccommodationPage() {
   const router = useRouter();
   const { formatPrice, currency } = useCurrency();
   const [saving, setSaving] = useState(false);
+  const [newImageUrl, setNewImageUrl] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
@@ -410,17 +411,17 @@ export default function AddAccommodationPage() {
                     <Input
                       type="url"
                       placeholder="https://example.com/image.jpg"
-                      id="imageUrlInput"
+                      value={newImageUrl}
+                      onChange={(e) => setNewImageUrl(e.target.value)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           e.preventDefault();
-                          const input = e.target as HTMLInputElement;
-                          if (input.value.trim()) {
+                          if (newImageUrl.trim()) {
                             setFormData(prev => ({
                               ...prev,
-                              images: [...prev.images, input.value.trim()]
+                              images: [...prev.images, newImageUrl.trim()]
                             }));
-                            input.value = "";
+                            setNewImageUrl("");
                           }
                         }
                       }}
@@ -429,13 +430,12 @@ export default function AddAccommodationPage() {
                       type="button"
                       variant="outline"
                       onClick={() => {
-                        const input = document.getElementById("imageUrlInput") as HTMLInputElement;
-                        if (input?.value.trim()) {
+                        if (newImageUrl.trim()) {
                           setFormData(prev => ({
                             ...prev,
-                            images: [...prev.images, input.value.trim()]
+                            images: [...prev.images, newImageUrl.trim()]
                           }));
-                          input.value = "";
+                          setNewImageUrl("");
                         }
                       }}
                     >
