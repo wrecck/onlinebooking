@@ -72,6 +72,7 @@ interface StoredAccommodation {
   size?: number | null;
   amenities?: string[];
   status: string;
+  image?: string;
   images?: string[];
 }
 
@@ -267,6 +268,7 @@ export default function EditAccommodationPage() {
       bathrooms: parseInt(formData.bathrooms) || 1,
       size: formData.size ? parseInt(formData.size) : null,
       amenities: formData.amenities,
+      image: formData.images.length > 0 ? formData.images[0] : undefined,
       images: formData.images,
       status: formData.status,
     };

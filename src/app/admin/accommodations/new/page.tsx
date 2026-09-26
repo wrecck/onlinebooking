@@ -118,9 +118,10 @@ export default function AddAccommodationPage() {
       bathrooms: parseInt(formData.bathrooms) || 1,
       size: formData.size ? parseInt(formData.size) : null,
       amenities: formData.amenities,
+      images: formData.images,
       status: formData.status,
       bookings: 0,
-      image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&h=150&fit=crop",
+      image: formData.images.length > 0 ? formData.images[0] : "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&h=150&fit=crop",
     };
     
     accommodations.push(newAccommodation);

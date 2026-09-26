@@ -53,6 +53,7 @@ interface Accommodation {
   status: string;
   bookings?: number;
   image?: string;
+  images?: string[];
 }
 
 const defaultAccommodations: Accommodation[] = [
@@ -245,9 +246,12 @@ export default function AdminAccommodationsPage() {
             <CardContent className="p-0">
               <div className="flex items-center">
                 <img
-                  src={accommodation.image}
+                  src={(accommodation.images && accommodation.images.length > 0) ? accommodation.images[0] : (accommodation.image || "https://via.placeholder.com/200x150?text=No+Image")}
                   alt={accommodation.name}
                   className="w-32 h-24 object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "https://via.placeholder.com/200x150?text=Image+Error";
+                  }}
                 />
                 <div className="flex-1 p-4">
                   <div className="flex items-start justify-between">
