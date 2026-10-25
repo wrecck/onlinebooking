@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useCurrency } from "@/contexts/currency-context";
-import { Star, Users, Bed, Bath, Filter, Map } from "lucide-react";
+import { Star, Users, Bed, Bath, Filter } from "lucide-react";
 
 const accommodations = [
   {
@@ -127,15 +127,9 @@ export default function AccommodationsPage() {
           <h1 className="text-3xl md:text-4xl font-bold mb-4">
             Our Accommodations
           </h1>
-          <p className="text-lg text-emerald-100 max-w-2xl mx-auto mb-6">
+          <p className="text-lg text-emerald-100 max-w-2xl mx-auto">
             From cozy rooms to luxurious villas, find the perfect accommodation for your stay.
           </p>
-          <Link href="/select-accommodation">
-            <Button className="bg-white text-emerald-600 hover:bg-emerald-50">
-              <Map className="w-4 h-4 mr-2" />
-              View Resort Map
-            </Button>
-          </Link>
         </div>
       </div>
 
