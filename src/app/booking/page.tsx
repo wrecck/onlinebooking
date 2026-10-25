@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { formatDate, calculateNights, generateBookingNumber } from "@/lib/utils";
 import { useCurrency } from "@/contexts/currency-context";
+import { findPublicAccommodation } from "@/lib/public-accommodations";
 
 const accommodationsData: Record<string, {
   id: string;
@@ -92,7 +93,13 @@ function BookingForm() {
   const checkOutParam = searchParams.get("checkOut") || "";
   const guestsParam = searchParams.get("guests") || "1";
 
-  const accommodation = accommodationsData[accommodationSlug];
+  const staticAccommodation = accommodationsData[accommodationSlug] as
+    | (typeof accommodationsData)[string]
+    | undefined;
+  const [accommodation, setAccommodation] = useState<
+    (typeof accommodationsData)[string] | null
+  >(staticAccommodation ?? null);
+  const [lookupDone, setLookupDone] = useState(Boolean(staticAccommodation));
 
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -116,6 +123,36 @@ function BookingForm() {
       }));
     }
   }, [session]);
+
+  useEffect(() => {
+    if (staticAccommodation) {
+      setAccommodation(staticAccommodation);
+      setLookupDone(true);
+      return;
+    }
+    const found = findPublicAccommodation(accommodationSlug);
+    if (found) {
+      setAccommodation({
+        id: found.id,
+        name: found.name,
+        type: found.type,
+        price: found.price,
+        maxGuests: found.maxGuests,
+        image: found.image,
+      });
+    } else {
+      setAccommodation(null);
+    }
+    setLookupDone(true);
+  }, [accommodationSlug, staticAccommodation]);
+
+  if (!lookupDone) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600" />
+      </div>
+    );
+  }
 
   if (!accommodation || !checkInParam || !checkOutParam) {
     return (

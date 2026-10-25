@@ -79,11 +79,10 @@ export default function HomePage() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (checkIn && checkOut) {
-      router.push(`/select-accommodation?checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`);
-    } else {
-      router.push("/select-accommodation");
-    }
+    const params = new URLSearchParams({ guests });
+    if (checkIn) params.set("checkIn", checkIn);
+    if (checkOut) params.set("checkOut", checkOut);
+    router.push(`/search?${params.toString()}`);
   };
 
   const today = new Date().toISOString().split("T")[0];
@@ -281,7 +280,7 @@ export default function HomePage() {
           <p className="text-xl mb-8 text-emerald-100">
             Book now and get 10% off your first stay. Use code WELCOME10 at checkout.
           </p>
-          <Link href="/select-accommodation">
+          <Link href="/search">
             <Button size="lg" className="bg-white text-emerald-600 hover:bg-emerald-50">
               Book Your Stay
               <ArrowRight className="w-4 h-4 ml-2" />
