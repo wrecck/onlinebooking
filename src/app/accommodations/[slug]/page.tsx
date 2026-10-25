@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +24,9 @@ import {
   Check,
   MapPin
 } from "lucide-react";
-import { formatCurrency, calculateNights } from "@/lib/utils";
+import { calculateNights } from "@/lib/utils";
+import { useCurrency } from "@/contexts/currency-context";
+import { findPublicAccommodation, PublicAccommodation } from "@/lib/public-accommodations";
 
 const accommodationsData: Record<string, {
   id: string;
@@ -139,6 +141,52 @@ Each of the four bedrooms has been thoughtfully designed with families in mind, 
   },
 };
 
+const defaultPolicies = [
+  "Check-in: 2:00 PM",
+  "Check-out: 11:00 AM",
+  "No smoking",
+  "Free cancellation before arrival",
+];
+
+type DetailRoom = {
+  id: string;
+  name: string;
+  type: string;
+  description: string;
+  longDescription: string;
+  price: number;
+  maxGuests: number;
+  bedrooms: number;
+  bathrooms: number;
+  size: number;
+  images: string[];
+  rating: number;
+  reviewCount: number;
+  amenities: string[];
+  policies: string[];
+};
+
+function toDetail(room: PublicAccommodation, rich?: (typeof accommodationsData)[string]): DetailRoom {
+  const images = room.images.length > 0 ? room.images : rich?.images || [room.image];
+  return {
+    id: room.id,
+    name: room.name,
+    type: room.type,
+    description: rich?.description || room.description,
+    longDescription: rich?.longDescription || room.description,
+    price: room.price,
+    maxGuests: room.maxGuests,
+    bedrooms: room.bedrooms,
+    bathrooms: room.bathrooms,
+    size: room.size || rich?.size || 0,
+    images,
+    rating: room.rating || rich?.rating || 0,
+    reviewCount: room.reviewCount || rich?.reviewCount || 0,
+    amenities: room.amenities.length > 0 ? room.amenities : rich?.amenities || [],
+    policies: rich?.policies || defaultPolicies,
+  };
+}
+
 const amenityIcons: Record<string, React.ElementType> = {
   "WiFi": Wifi,
   "Air Conditioning": Wind,
@@ -148,17 +196,52 @@ const amenityIcons: Record<string, React.ElementType> = {
   "Beach Access": Waves,
 };
 
-export default function AccommodationDetailPage() {
+function AccommodationDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { formatPrice } = useCurrency();
   const slug = params.slug as string;
+  const staticRoom = accommodationsData[slug];
   
-  const accommodation = accommodationsData[slug];
-  
+  const [accommodation, setAccommodation] = useState<DetailRoom | null>(
+    staticRoom
+      ? {
+          ...staticRoom,
+        }
+      : null
+  );
+  const [ready, setReady] = useState(false);
   const [currentImage, setCurrentImage] = useState(0);
-  const [checkIn, setCheckIn] = useState("");
-  const [checkOut, setCheckOut] = useState("");
-  const [guests, setGuests] = useState(1);
+  const [checkIn, setCheckIn] = useState(searchParams.get("checkIn") || "");
+  const [checkOut, setCheckOut] = useState(searchParams.get("checkOut") || "");
+  const [guests, setGuests] = useState(Math.max(1, Number(searchParams.get("guests") || "1")));
+
+  useEffect(() => {
+    const found = findPublicAccommodation(slug);
+    if (found) {
+      setAccommodation(toDetail(found, accommodationsData[slug]));
+    } else if (accommodationsData[slug]) {
+      setAccommodation(accommodationsData[slug]);
+    } else {
+      setAccommodation(null);
+    }
+    setCurrentImage(0);
+    setReady(true);
+  }, [slug]);
+
+  useEffect(() => {
+    if (!accommodation) return;
+    setGuests((current) => Math.min(Math.max(1, current), accommodation.maxGuests));
+  }, [accommodation]);
+
+  if (!ready) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600" />
+      </div>
+    );
+  }
 
   if (!accommodation) {
     return (
@@ -217,11 +300,15 @@ export default function AccommodationDetailPage() {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Badge variant="success">{accommodation.type}</Badge>
-                <div className="flex items-center space-x-1">
-                  <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                  <span className="font-medium">{accommodation.rating}</span>
-                  <span className="text-slate-500">({accommodation.reviewCount} reviews)</span>
-                </div>
+                {accommodation.rating > 0 && (
+                  <div className="flex items-center space-x-1">
+                    <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                    <span className="font-medium">{accommodation.rating}</span>
+                    {accommodation.reviewCount > 0 && (
+                      <span className="text-slate-500">({accommodation.reviewCount} reviews)</span>
+                    )}
+                  </div>
+                )}
               </div>
               <h1 className="text-3xl font-bold text-slate-900">{accommodation.name}</h1>
               <p className="text-slate-600 mt-1 flex items-center">
@@ -242,29 +329,33 @@ export default function AccommodationDetailPage() {
                 alt={accommodation.name}
                 className="w-full h-[400px] object-cover"
               />
-              <button
-                onClick={prevImage}
-                className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 p-2 rounded-full shadow-lg hover:bg-white transition-colors"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <button
-                onClick={nextImage}
-                className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 p-2 rounded-full shadow-lg hover:bg-white transition-colors"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
-                {accommodation.images.map((_, index) => (
+              {accommodation.images.length > 1 && (
+                <>
                   <button
-                    key={index}
-                    onClick={() => setCurrentImage(index)}
-                    className={`w-2 h-2 rounded-full transition-colors ${
-                      index === currentImage ? "bg-white" : "bg-white/50"
-                    }`}
-                  />
-                ))}
-              </div>
+                    onClick={prevImage}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 p-2 rounded-full shadow-lg hover:bg-white transition-colors"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={nextImage}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 p-2 rounded-full shadow-lg hover:bg-white transition-colors"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
+                    {accommodation.images.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentImage(index)}
+                        className={`w-2 h-2 rounded-full transition-colors ${
+                          index === currentImage ? "bg-white" : "bg-white/50"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Thumbnail Gallery */}
@@ -300,9 +391,11 @@ export default function AccommodationDetailPage() {
                 <Bath className="w-5 h-5 text-slate-500" />
                 <span>{accommodation.bathrooms} bathrooms</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-slate-500">{accommodation.size} m²</span>
-              </div>
+              {accommodation.size > 0 && (
+                <div className="flex items-center space-x-2">
+                  <span className="text-slate-500">{accommodation.size} m²</span>
+                </div>
+              )}
             </div>
 
             {/* Description */}
@@ -352,7 +445,7 @@ export default function AccommodationDetailPage() {
                 <CardTitle className="flex items-baseline justify-between">
                   <span>
                     <span className="text-2xl font-bold text-emerald-600">
-                      {formatCurrency(accommodation.price)}
+                      {formatPrice(accommodation.price)}
                     </span>
                     <span className="text-slate-500 font-normal"> / night</span>
                   </span>
@@ -415,20 +508,20 @@ export default function AccommodationDetailPage() {
                 {nights > 0 && (
                   <div className="border-t border-slate-200 pt-4 space-y-2">
                     <div className="flex justify-between text-slate-600">
-                      <span>{formatCurrency(accommodation.price)} x {nights} nights</span>
-                      <span>{formatCurrency(subtotal)}</span>
+                      <span>{formatPrice(accommodation.price)} x {nights} nights</span>
+                      <span>{formatPrice(subtotal)}</span>
                     </div>
                     <div className="flex justify-between text-slate-600">
                       <span>Cleaning fee</span>
-                      <span>{formatCurrency(cleaningFee)}</span>
+                      <span>{formatPrice(cleaningFee)}</span>
                     </div>
                     <div className="flex justify-between text-slate-600">
                       <span>Service fee</span>
-                      <span>{formatCurrency(serviceFee)}</span>
+                      <span>{formatPrice(serviceFee)}</span>
                     </div>
                     <div className="flex justify-between font-semibold text-slate-900 pt-2 border-t border-slate-200">
                       <span>Total</span>
-                      <span>{formatCurrency(total)}</span>
+                      <span>{formatPrice(total)}</span>
                     </div>
                   </div>
                 )}
@@ -450,5 +543,21 @@ export default function AccommodationDetailPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600" />
+    </div>
+  );
+}
+
+export default function AccommodationDetailRoute() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <AccommodationDetailPage />
+    </Suspense>
   );
 }

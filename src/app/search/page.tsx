@@ -141,6 +141,14 @@ function SearchResults() {
     router.push(`/booking?${params.toString()}`);
   };
 
+  const detailsHref = (room: PublicAccommodation) => {
+    const params = new URLSearchParams();
+    if (initialCheckIn) params.set("checkIn", initialCheckIn);
+    if (initialCheckOut) params.set("checkOut", initialCheckOut);
+    params.set("guests", String(guestCount));
+    return `/accommodations/${encodeURIComponent(room.slug || room.id)}?${params.toString()}`;
+  };
+
   return (
     <div className="bg-slate-100 min-h-screen">
       <div className="bg-white border-b border-slate-200">
@@ -270,6 +278,7 @@ function SearchResults() {
           {listed.map(({ room, unavailable, tooSmall }) => {
             const stayTotal = nights > 0 ? room.price * nights : room.price;
             const IconList = room.amenities.slice(0, 6);
+            const href = detailsHref(room);
             return (
               <article
                 key={room.id}
@@ -278,11 +287,15 @@ function SearchResults() {
                 }`}
               >
                 <div className="flex flex-col md:flex-row">
-                  <div className="md:w-64 lg:w-72 shrink-0 relative bg-slate-200">
+                  <Link
+                    href={href}
+                    className="md:w-64 lg:w-72 shrink-0 relative bg-slate-200 block group"
+                    aria-label={`View details for ${room.name}`}
+                  >
                     <img
                       src={room.image}
                       alt={room.name}
-                      className="w-full h-52 md:h-full md:min-h-[240px] object-cover"
+                      className="w-full h-52 md:h-full md:min-h-[240px] object-cover group-hover:opacity-95"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src =
                           "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop";
@@ -293,7 +306,7 @@ function SearchResults() {
                         {room.code}
                       </span>
                     )}
-                  </div>
+                  </Link>
 
                   <div className="flex-1 p-4 md:p-5 flex flex-col lg:flex-row gap-5">
                     <div className="flex-1 min-w-0">
@@ -305,7 +318,11 @@ function SearchResults() {
                               <span className="text-xs text-slate-500">{zoneLabels[room.zone] || room.zone}</span>
                             )}
                           </div>
-                          <h2 className="text-lg font-bold text-slate-900">{room.name}</h2>
+                          <h2 className="text-lg font-bold text-slate-900">
+                            <Link href={href} className="hover:text-emerald-700 hover:underline">
+                              {room.name}
+                            </Link>
+                          </h2>
                         </div>
                         {room.rating ? (
                           <div className="text-right shrink-0">
